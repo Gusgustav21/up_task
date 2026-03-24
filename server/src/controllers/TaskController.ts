@@ -83,7 +83,7 @@ export class TaskController {
             const newTasks = req.project.tasks.filter(task => task.toString() !== taskId)
             req.project.tasks = newTasks
             await Promise.allSettled([req.task.deleteOne(), req.project.save()])
-            res.json("Task deleted")
+            res.json("Tarea eliminada")
         } catch (error) {
             console.log(error)
             res.status(500).json({ error: "Error obteniendo la tarea" })

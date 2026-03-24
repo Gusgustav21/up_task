@@ -59,7 +59,7 @@ router.delete("/:id",
 
 // Tasks Routes
 router.param("projectId", projectExists)
-router.param("/:taskId", taskExists)
+router.param("taskId", taskExists)
 
 router.post("/:projectId/tasks",
 
@@ -85,7 +85,7 @@ router.get("/:projectId/tasks/:taskId",
 
     param("projectId").isMongoId().withMessage("Project ID not valid"),
     
-    param("id").isMongoId().withMessage("Task ID not valid"),
+    param("taskId").isMongoId().withMessage("Task ID not valid"),
 
     handleInputErrors,
     
@@ -96,7 +96,7 @@ router.put("/:projectId/tasks/:taskId",
 
     param("projectId").isMongoId().withMessage("Project ID not valid"),
 
-    param("id").isMongoId().withMessage("Task ID not valid"),
+    param("taskId").isMongoId().withMessage("Task ID not valid"),
 
     body("name").notEmpty().withMessage("Name cannot be empty"),
 
@@ -111,7 +111,7 @@ router.patch("/:projectId/tasks/:taskId",
 
     param("projectId").isMongoId().withMessage("Project ID not valid"),
 
-    param("id").isMongoId().withMessage("Task ID not valid"),
+    param("taskId").isMongoId().withMessage("Task ID not valid"),
 
     body("taskStatus").notEmpty().withMessage("Status cannot be empty")
                       .custom(status => Object.values(taskStatus).includes(status as TaskStatus))
@@ -126,7 +126,7 @@ router.delete("/:projectId/tasks/:taskId",
 
     param("projectId").isMongoId().withMessage("Project ID not valid"),
     
-    param("id").isMongoId().withMessage("Task ID not valid"),
+    param("taskId").isMongoId().withMessage("Task ID not valid"),
 
     handleInputErrors,
     

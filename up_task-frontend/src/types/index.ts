@@ -6,7 +6,9 @@ export const taskSchema = z.object({
     _id: z.string(),
     name: z.string(),
     description: z.string(),
-    taskStatus: taskStatusSchema
+    taskStatus: taskStatusSchema,
+    createdAt: z.string(),
+    updatedAt: z.string()
 })
 
 export const dashboardTasksSchema = z.array(

@@ -62,7 +62,7 @@ export class ProjectController {
             //project.deleteOne({id : project.id})
             res.json("Proyecto borrado")
         } catch (error) {
-            
+            res.status(500).json({ error: "Error obteniendo el proyecto" })
         }
     }
 }
