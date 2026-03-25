@@ -37,6 +37,25 @@ export const dashboardProjectsSchema = z.array(
     })
 )
 
+export const authSchema = z.object({
+    name: z.string(),
+    email: z.string(),
+    password: z.string(),
+    password_confirmation: z.string(),
+    token: z.string()
+})
+
+export interface Auth extends z.infer<typeof authSchema> {}
+
+export interface ConfirmToken extends Pick<Auth, "token"> {}
+
+export interface UserLoginForm extends Pick<Auth, "email" | "password"> {}
+
+export interface RequestConfirmationCodeForm extends Pick<Auth, "email"> {}
+
+export interface UserRegistrationForm extends Pick<Auth, "name" | "email" | "password" | "password_confirmation"> {}
+
+export interface UserLoginForm extends Pick<Auth, "email" | "password"> {}
 
 export interface Project extends z.infer<typeof projectSchema> {}
 

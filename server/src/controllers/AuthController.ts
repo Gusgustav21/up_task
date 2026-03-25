@@ -1,16 +1,134 @@
 import { Request, Response } from "express"
+import bcrypt from "bcrypt"
 import User from "../models/User"
+import { checkPassword, hashPassword } from "../utils/auth"
+import Token from "../models/Token"
+import { generateToken } from "../utils/token"
+import { AuthEmail } from "../emails/AuthEmail"
 
 export default class AuthController {
 
     static createAccount = async (req: Request, res: Response) => {
         try {
-            const user = new User(req.body)
-            await user.save()
+            const { password, email } = req.body
+            const userExists = await User.findOne({email})
+            if(userExists) {
+                const error = new Error("El correo ya está registrado")
+                return res.status(409).json({error: error.message})
+            }
 
-            res.send("Cuenta creada exitosamente")
+            const user = new User(req.body)
+            user.password = await hashPassword(password)
+
+            const token = new Token()
+            token.token = generateToken()
+            token.user = user._id
+
+            await Promise.allSettled([user.save(), token.save(), AuthEmail.sendConfirmationEmail({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token
+                })
+            ])
+            res.send("Cuenta creada exitosamente, confirme su cuenta con el token que le enviamos al correo")
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: "Error creando al usuario" })
         }
-    } 
+    }
+
+    static confirmAccount = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.body
+
+            const tokenExists = await Token.findOne({token})
+
+            if(!tokenExists) {
+                const error = new Error("El token no existe o ya venció")
+                return res.status(404).json({error: error.message})
+            }
+
+            const confirmedUser = await User.findById(tokenExists.user)
+
+            confirmedUser.confirmed = true
+
+            await Promise.allSettled([confirmedUser.save(), tokenExists.deleteOne()])
+            
+            res.send("Cuenta confirmada exitosamente")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error confirmando al usuario" })
+        }
+    }
+
+    static loginAccount = async (req: Request, res: Response) => {
+        try {
+            const { password, email } = req.body
+            const user = await User.findOne({email})
+            if(!user) {
+                const error = new Error("El correo no está registrado")
+                return res.status(404).json({error: error.message})
+            }
+
+            if(!user.confirmed) {
+                const token = new Token()
+                token.token = generateToken()
+                token.user = user._id
+
+                await token.save()
+
+                AuthEmail.sendConfirmationEmail({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token
+                })
+
+                const error = new Error("El usuario no está confirmado, hemos enviado un e-mail de confirmación")
+                return res.status(401).json({error: error.message})
+            }
+
+            const isPasswordCorrect = await checkPassword(password, user.password)
+
+            if(!isPasswordCorrect) {
+                const error = new Error("Contraseña incorrecta")
+                return res.status(401).json({error: error.message})
+            }
+
+            res.send("Auntenticando...")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error creando al usuario" })
+        }
+    }
+
+    static requestConfirmAccount = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body
+            const user = await User.findOne({email})
+            if(!user) {
+                const error = new Error("El correo no está registrado")
+                return res.status(409).json({error: error.message})
+            }
+
+            if(user.confirmed) {
+                const error = new Error("El usuario ya está confirmado")
+                return res.status(403).json({error: error.message})
+            }
+
+            const token = new Token()
+            token.token = generateToken()
+            token.user = user._id
+
+            await Promise.allSettled([user.save(), token.save(), AuthEmail.sendConfirmationEmail({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token
+                })
+            ])
+            res.send("Token reenviado correctamente")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error creando al usuario" })
+        }
+    }
 }
