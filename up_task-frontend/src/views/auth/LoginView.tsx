@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import type { UserLoginForm } from "@/types/index";
 import ErrorMessage from "@/components/ErrorMessage";
-import { Link, useNavigate } from "react-router-dom";
+import { Link/*, useNavigate*/ } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authenticateUser } from "@/api/AuthAPI";
 import { toast } from "react-toastify";
@@ -14,16 +14,16 @@ export default function LoginView() {
     }
     const { register, handleSubmit, formState: { errors } } = useForm({ defaultValues: initialValues })
 
-    const navigate = useNavigate()
+    //const navigate = useNavigate()
 
 	const { mutate } = useMutation({
         mutationFn: authenticateUser,
         onError: (res) => {
             toast.error(res.message)
         },
-        onSuccess: (res) => {
-            toast.success(res)
-            navigate("/")
+        onSuccess: () => {
+            toast.success("Iniciando Sesión")
+            //navigate("/")
         }
     })
 
@@ -31,9 +31,14 @@ export default function LoginView() {
 
     return (
         <>
+            <h1 className="text-5xl font-black text-white">Iniciar sesión</h1>
+            <p className="text-2xl font-light text-white mt-5">
+                Comienza a planear tus proyectos {""}
+                <span className=" text-fuchsia-500 font-bold"> iniciando sesión</span>
+            </p>
             <form
                 onSubmit={handleSubmit(handleLogin)}
-                className="space-y-8 p-10 bg-white rounded-2xl"
+                className="space-y-8 p-10 mt-10 bg-white rounded-2xl"
                 noValidate
             >
                 <div className="flex flex-col gap-5">
@@ -89,6 +94,12 @@ export default function LoginView() {
                     className=""
                 >
                     ¿No tienes cuenta? <span className="hover:text-purple-500 hover:underline font-bold">Click aquí</span> para crearla
+                </Link>
+                <Link
+                    to='/auth/forgot_password'
+                    className="text-center text-gray-300 font-normal"
+                >
+                    ¿Olvidaste tu contraseña? Reestablecer
                 </Link>
             </nav>
         </>

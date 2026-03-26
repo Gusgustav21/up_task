@@ -7,6 +7,8 @@ export class ProjectController {
 
         const newProject = new Project(req.body)
 
+        newProject.manager = req.user._id
+
         try {
             await newProject.save()
             res.send("Proyecto creado correctamente")
@@ -17,7 +19,11 @@ export class ProjectController {
 
     static getAllProjects = async (req: Request, res: Response) => {
         try {
-            const projects = await Project.find({})
+            const projects = await Project.find({
+                $or: [
+                    {manager: req.user._id}
+                ]
+            })
             res.json(projects)
         } catch (error) {
             console.log(error)
@@ -27,9 +33,12 @@ export class ProjectController {
     static getProject = async (req: Request, res: Response) => {
         const { id } = req.params
         try {
-            const project = await Project.findById(id).populate("tasks")
+            const project = await Project.findById(id, ).populate("tasks")
             if (!project) {
                 return res.status(404).json({ error: "Proyecto no encontrado" })
+            }
+            if (project.manager._id.toString() !== req.user._id.toString()) {
+                return res.status(404).json({ error: "Proyecto no encontrado" }) 
             }
             res.json(project)
         } catch (error) {
@@ -40,12 +49,18 @@ export class ProjectController {
     static updateProject = async (req: Request, res: Response) => {
         try {
             const { id } = req.params
-            const project = await Project.findByIdAndUpdate(id, req.body)
+
+            const project = await Project.findById(id)
+
             if (!project) {
                 return res.status(404).json({ error: "Proyecto no encontrado" })
             }
 
-            project.save()
+            if (project.manager._id.toString() !== req.user._id.toString()) {
+                return res.status(404).json({ error: "Proyecto no encontrado" })
+            }
+
+            await project.updateOne()
             res.json("Proyecto actualizado")
         } catch (error) {
             res.status(500).json({ error: "Error obteniendo el proyecto" })
@@ -55,11 +70,16 @@ export class ProjectController {
     static deleteProject = async (req: Request, res: Response) => {
         const { id } = req.params
         try {
-            const project = await Project.findByIdAndDelete(id)
+            const project = await Project.findById(id)
             if (!project) {
                 return res.status(404).json({ error: "Proyecto no encontrado" })
             }
-            //project.deleteOne({id : project.id})
+
+            if (project.manager._id.toString() !== req.user._id.toString()) {
+                return res.status(404).json({ error: "Proyecto no encontrado" })
+            }
+
+            project.deleteOne()
             res.json("Proyecto borrado")
         } catch (error) {
             res.status(500).json({ error: "Error obteniendo el proyecto" })

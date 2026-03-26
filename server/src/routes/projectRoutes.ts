@@ -6,8 +6,11 @@ import { TaskController } from "../controllers/TaskController"
 import { taskStatus, type TaskStatus } from "../models/Task"
 import projectExists from "../middleware/project"
 import taskExists from "../middleware/task"
+import { authenticate } from "../middleware/auth"
 
 const router = Router()
+
+router.use(authenticate)
 
 router.post("/", 
     

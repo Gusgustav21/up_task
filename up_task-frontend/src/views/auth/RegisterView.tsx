@@ -4,6 +4,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import { useMutation } from "@tanstack/react-query";
 import { createAccount } from "@/api/AuthAPI";
 import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 
 export default function RegisterView() {
   
@@ -44,6 +45,24 @@ export default function RegisterView() {
                 className="space-y-8 p-10 rounded-xl bg-white mt-10"
                 noValidate
             >
+                
+                <div className="flex flex-col gap-5">
+                    <label
+                        className="font-normal text-2xl"
+                    >Nombre</label>
+                    <input
+                        type="name"
+                        placeholder="Nombre de Registro"
+                        className="w-full p-3  border-gray-300 border"
+                        {...register("name", {
+                        required: "El Nombre de usuario es obligatorio",
+                        })}
+                    />
+                    {errors.name && (
+                        <ErrorMessage>{errors.name.message}</ErrorMessage>
+                    )}
+                </div>
+
                 <div className="flex flex-col gap-5">
                     <label
                         className="font-normal text-2xl"
@@ -64,23 +83,6 @@ export default function RegisterView() {
                     />
                     {errors.email && (
                         <ErrorMessage>{errors.email.message}</ErrorMessage>
-                    )}
-                </div>
-
-                <div className="flex flex-col gap-5">
-                    <label
-                        className="font-normal text-2xl"
-                    >Nombre</label>
-                    <input
-                        type="name"
-                        placeholder="Nombre de Registro"
-                        className="w-full p-3  border-gray-300 border"
-                        {...register("name", {
-                        required: "El Nombre de usuario es obligatorio",
-                        })}
-                    />
-                    {errors.name && (
-                        <ErrorMessage>{errors.name.message}</ErrorMessage>
                     )}
                 </div>
 
@@ -133,6 +135,20 @@ export default function RegisterView() {
                     className="bg-fuchsia-600 hover:bg-fuchsia-700 w-full p-3 rounded-md text-white font-black  text-xl cursor-pointer"
                 />
             </form>
+            <nav className="mt-10 flex flex-col space-y-4">
+                <Link
+                    to='/auth/login'
+                    className="text-center text-gray-300 font-normal"
+                >
+                    ¿Ya tienes cuenta? Iniciar Sesión
+                </Link>
+                <Link
+                    to='/auth/forgot_password'
+                    className="text-center text-gray-300 font-normal"
+                >
+                    ¿Olvidaste tu contraseña? Reestablecer
+                </Link>
+            </nav>
         </>
     )
 }

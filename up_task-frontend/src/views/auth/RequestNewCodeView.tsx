@@ -27,7 +27,7 @@ export default function RequestNewCodeView() {
         }
     })
 
-    const handleRequestCode = (formData: RequestConfirmationCodeForm) => mutate(formData.email)
+    const handleRequestCode = (formData: RequestConfirmationCodeForm) => mutate(formData)
 
     return (
         <>

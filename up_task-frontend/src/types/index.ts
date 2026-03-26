@@ -49,9 +49,17 @@ export interface Auth extends z.infer<typeof authSchema> {}
 
 export interface ConfirmToken extends Pick<Auth, "token"> {}
 
+export interface NewPasswordToken extends ConfirmToken {}
+
+export interface NewPasswordForm extends Pick<Auth, "password" | "password_confirmation"> {}
+
+export interface NewPasswordData extends NewPasswordForm {token: string}
+
 export interface UserLoginForm extends Pick<Auth, "email" | "password"> {}
 
 export interface RequestConfirmationCodeForm extends Pick<Auth, "email"> {}
+
+export interface ForgotPasswordForm extends RequestConfirmationCodeForm {}
 
 export interface UserRegistrationForm extends Pick<Auth, "name" | "email" | "password" | "password_confirmation"> {}
 

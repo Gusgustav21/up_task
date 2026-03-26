@@ -5,6 +5,7 @@ import { checkPassword, hashPassword } from "../utils/auth"
 import Token from "../models/Token"
 import { generateToken } from "../utils/token"
 import { AuthEmail } from "../emails/AuthEmail"
+import { generateJWT } from "../utils/jwt"
 
 export default class AuthController {
 
@@ -66,7 +67,7 @@ export default class AuthController {
             const { password, email } = req.body
             const user = await User.findOne({email})
             if(!user) {
-                const error = new Error("El correo no está registrado")
+                const error = new Error("El usuario no está registrado")
                 return res.status(404).json({error: error.message})
             }
 
@@ -94,7 +95,9 @@ export default class AuthController {
                 return res.status(401).json({error: error.message})
             }
 
-            res.send("Auntenticando...")
+            const token = generateJWT({id: user._id})
+
+            res.send(token)
         } catch (error) {
             console.log(error)
             res.status(500).json({ error: "Error creando al usuario" })
@@ -126,6 +129,95 @@ export default class AuthController {
                 })
             ])
             res.send("Token reenviado correctamente")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error creando al usuario" })
+        }
+    }
+
+    static forgotPassword = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body
+            const user = await User.findOne({email})
+            if(!user) {
+                const error = new Error("El correo no está registrado")
+                return res.status(409).json({error: error.message})
+            }
+
+            const token = new Token()
+            token.token = generateToken()
+            token.user = user._id
+
+            await Promise.allSettled([token.save(), AuthEmail.sendPasswordResetToken({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token
+                })
+            ])
+            res.send("Revisa tu email para instrucciones")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error creando al usuario" })
+        }
+    }
+
+    static validateNewPasswordToken = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.body
+
+            const tokenExists = await Token.findOne({token})
+
+            if(!tokenExists) {
+                const error = new Error("El token no existe o ya venció")
+                return res.status(404).json({error: error.message})
+            }
+            
+            res.send("Token válido")
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: "Error confirmando al usuario" })
+        }
+    }
+
+    static updatePasswordWithToken = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.params
+
+            const tokenExists = await Token.findOne({token})
+
+            if(!tokenExists) {
+                const error = new Error("El token no existe o ya venció")
+                return res.status(404).json({error: error.message})
+            }
+
+            const user = await User.findById(tokenExists.user)
+            if(!user) {
+                const error = new Error("El usuario no está registrado")
+                return res.status(404).json({error: error.message})
+            }
+
+            if(!user.confirmed) {
+                const token = new Token()
+                token.token = generateToken()
+                token.user = user._id
+
+                await token.save()
+
+                AuthEmail.sendConfirmationEmail({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token
+                })
+
+                const error = new Error("El usuario no está confirmado, hemos enviado un e-mail de confirmación")
+                return res.status(401).json({error: error.message})
+            }
+
+            user.password = await hashPassword(req.body.password)
+
+            await Promise.allSettled([user.save(), tokenExists.deleteOne()])
+
+            res.send("Contraseña actualizada exitosamente")
         } catch (error) {
             console.log(error)
             res.status(500).json({ error: "Error creando al usuario" })

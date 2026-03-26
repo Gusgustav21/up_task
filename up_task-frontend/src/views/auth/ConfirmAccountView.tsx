@@ -27,7 +27,7 @@ export default function ConfirmAccountView() {
 		setToken(token)
 	}
 
-	const handleComplete = (token: ConfirmToken["token"]) => mutate(token)
+	const handleComplete = (token: ConfirmToken["token"]) => mutate({token})
     return (
 		<>
 			<h1 className="text-5xl font-black text-white">Confirma tu Cuenta</h1>
