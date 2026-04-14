@@ -223,4 +223,9 @@ export default class AuthController {
             res.status(500).json({ error: "Error creando al usuario" })
         }
     }
+
+    static user = async (req: Request, res: Response) => {
+        return res.json(req.user)
+    }  
+
 }
